@@ -11,6 +11,8 @@ module.exports = TreeViewAutoresize =
       @treeView.on 'click', '.directory', (=> @resizeTreeView())
       @resizeTreeView()
 
+    atom.project.onDidChangePaths (=> @resizeTreeView())
+
   deactivate: ->
     @subscriptions.dispose()
 
@@ -19,10 +21,10 @@ module.exports = TreeViewAutoresize =
   resizeTreeView: ->
     currWidth = @treeView.list.outerWidth()
     if currWidth > @treeView.width()
-      @treeView.animate {width: currWidth}, 300
+      @treeView.animate {width: currWidth}, 200
     else
       @treeView.width 1
       @treeView.width @treeView.list.outerWidth()
       newWidth = @treeView.list.outerWidth()
       @treeView.width currWidth
-      @treeView.animate {width: newWidth}, 300
+      @treeView.animate {width: newWidth}, 200
