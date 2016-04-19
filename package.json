@@ -1,7 +1,7 @@
 {
   "name": "tree-view-autoresize",
   "main": "./lib/tree-view-autoresize",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Autoresize the tree view when open/close folders",
   "keywords": [
     "tree-view",
