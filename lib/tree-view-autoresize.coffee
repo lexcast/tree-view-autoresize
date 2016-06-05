@@ -20,27 +20,29 @@ module.exports = TreeViewAutoresize =
   activate: (state) ->
     @subscriptions = new CompositeDisposable
 
-    atom.config.observe 'tree-view-autoresize.maximumWidth', (max) =>
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.maximumWidth', (max) =>
       @max = max
 
-    atom.config.observe 'tree-view-autoresize.minimumWidth', (min) =>
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.minimumWidth', (min) =>
       @min = min
 
     if atom.packages.isPackageLoaded 'nuclide-file-tree'
-      $('body').on 'click', '.nuclide-file-tree .directory', (e) =>
+      $('body').on 'click.autoresize', '.nuclide-file-tree .directory', (e) =>
         @resizeNuclideFileTree()
-      atom.project.onDidChangePaths (=> @resizeNuclideFileTree())
+      @subscriptions.add atom.project.onDidChangePaths (=> @resizeNuclideFileTree())
       @resizeNuclideFileTree()
 
     else
       requirePackages('tree-view').then ([treeView]) =>
         @treeView = treeView.treeView
-        @treeView.on 'click', '.directory', (=> @resizeTreeView())
-        atom.project.onDidChangePaths (=> @resizeTreeView())
+        @treeView.on 'click.autoresize', '.directory', (=> @resizeTreeView())
+        @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
         @resizeTreeView()
 
   deactivate: ->
     @subscriptions.dispose()
+    @treeView?.unbind 'click.autoresize'
+    $('body').unbind 'click.autoresize'
 
   serialize: ->
 
