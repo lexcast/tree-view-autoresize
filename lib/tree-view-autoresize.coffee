@@ -56,7 +56,7 @@ module.exports = TreeViewAutoresize =
       @treeView.animate {width: @getWidth(newWidth)}, 200
 
   resizeNuclideFileTree: ->
-    setTimeout ->
+    setTimeout =>
       fileTree = $('.tree-view-resizer')
       currWidth = fileTree.find('.nuclide-file-tree').outerWidth()
       if currWidth > fileTree.width()
