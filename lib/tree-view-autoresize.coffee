@@ -37,6 +37,7 @@ module.exports = TreeViewAutoresize =
         @treeView = treeView.treeView
         @treeView.on 'click.autoresize', '.directory', (=> @resizeTreeView())
         @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
+        @subscriptions.add atom.commands.add 'atom-workspace', 'tree-view:reveal-active-file': => @resizeTreeView()
         @resizeTreeView()
 
   deactivate: ->
@@ -47,15 +48,17 @@ module.exports = TreeViewAutoresize =
   serialize: ->
 
   resizeTreeView: ->
-    currWidth = @treeView.list.outerWidth()
-    if currWidth > @treeView.width()
-      @treeView.animate {width: @getWidth(currWidth)}, 200
-    else
-      @treeView.width 1
-      @treeView.width @treeView.list.outerWidth()
-      newWidth = @treeView.list.outerWidth()
-      @treeView.width currWidth
-      @treeView.animate {width: @getWidth(newWidth)}, 200
+    setTimeout =>
+      currWidth = @treeView.list.outerWidth()
+      if currWidth > @treeView.width()
+        @treeView.animate {width: @getWidth(currWidth)}, 200
+      else
+        @treeView.width 1
+        @treeView.width @treeView.list.outerWidth()
+        newWidth = @treeView.list.outerWidth()
+        @treeView.width currWidth
+        @treeView.animate {width: @getWidth(newWidth)}, 200
+    , 200
 
   resizeNuclideFileTree: ->
     setTimeout =>
