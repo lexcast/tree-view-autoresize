@@ -12,10 +12,15 @@ module.exports = TreeViewAutoresize =
       type: 'integer'
       default: 0
       description: 'Maximum tree-view width. Put 0 if you don\'t want a max limit.'
+    padding:
+      type: 'integer'
+      default: 0
+      description: 'Padding on the right side of the tree-view'
 
   subscriptions: null
   max: 0
   min: 0
+  pad: 0
 
   activate: (state) ->
     @subscriptions = new CompositeDisposable
@@ -25,6 +30,9 @@ module.exports = TreeViewAutoresize =
 
     @subscriptions.add atom.config.observe 'tree-view-autoresize.minimumWidth', (min) =>
       @min = min
+
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.padding', (pad) =>
+      @pad = pad
 
     if atom.packages.isPackageLoaded 'nuclide-file-tree'
       $('body').on 'click.autoresize', '.nuclide-file-tree .directory', (e) =>
@@ -55,7 +63,7 @@ module.exports = TreeViewAutoresize =
       else
         @treeView.width 1
         @treeView.width @treeView.list.outerWidth()
-        newWidth = @treeView.list.outerWidth()
+        newWidth = @treeView.list.outerWidth() + @pad
         @treeView.width currWidth
         @treeView.animate {width: @getWidth(newWidth)}, 200
     , 200
