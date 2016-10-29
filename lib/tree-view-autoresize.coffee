@@ -7,11 +7,13 @@ module.exports = TreeViewAutoresize =
     minimumWidth:
       type: 'integer'
       default: 0
-      description: 'Minimum tree-view width. Put 0 if you don\'t want a min limit.'
+      description:
+        'Minimum tree-view width. Put 0 if you don\'t want a min limit.'
     maximumWidth:
       type: 'integer'
       default: 0
-      description: 'Maximum tree-view width. Put 0 if you don\'t want a max limit.'
+      description:
+        'Maximum tree-view width. Put 0 if you don\'t want a max limit.'
 
   subscriptions: null
   max: 0
@@ -20,11 +22,13 @@ module.exports = TreeViewAutoresize =
   activate: (state) ->
     @subscriptions = new CompositeDisposable
 
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.maximumWidth', (max) =>
-      @max = max
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.maximumWidth',
+      (max) =>
+        @max = max
 
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.minimumWidth', (min) =>
-      @min = min
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.minimumWidth',
+      (min) =>
+        @min = min
 
     if atom.packages.isPackageLoaded 'nuclide-file-tree'
       $('body').on 'click.autoresize', '.nuclide-file-tree .directory', (e) =>
@@ -37,7 +41,20 @@ module.exports = TreeViewAutoresize =
         @treeView = treeView.treeView
         @treeView.on 'click.autoresize', '.directory', (=> @resizeTreeView())
         @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
-        @subscriptions.add atom.commands.add 'atom-workspace', 'tree-view:reveal-active-file': => @resizeTreeView()
+        @subscriptions.add atom.commands.add 'atom-workspace',
+          'tree-view:reveal-active-file': => @resizeTreeView()
+        @subscriptions.add atom.commands.add '.tree-view',
+          'tree-view:open-selected-entry': => @resizeTreeView()
+          'tree-view:expand-item': => @resizeTreeView()
+          'tree-view:recursive-expand-directory': => @resizeTreeView()
+          'tree-view:collapse-directory': => @resizeTreeView()
+          'tree-view:recursive-collapse-directory': => @resizeTreeView()
+          'tree-view:move': => @resizeTreeView()
+          'tree-view:cut': => @resizeTreeView()
+          'tree-view:paste': => @resizeTreeView()
+          'tree-view:toggle-vcs-ignored-files': => @resizeTreeView()
+          'tree-view:toggle-ignored-names': => @resizeTreeView()
+          'tree-view:remove-project-folder': => @resizeTreeView()
         @resizeTreeView()
 
   deactivate: ->
