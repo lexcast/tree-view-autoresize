@@ -13,4 +13,4 @@ With apm:
 ```bash
 apm install tree-view-autoresize
 ```
-Or Settingss ➔ Packages ➔ Search for `tree-view-autoresize`
+Or Settings ➔ Packages ➔ Search for `tree-view-autoresize`
