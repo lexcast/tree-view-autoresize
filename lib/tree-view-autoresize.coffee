@@ -46,6 +46,8 @@ module.exports = TreeViewAutoresize =
 
     else
       requirePackages('tree-view').then ([treeView]) =>
+        unless treeView.treeView?
+          treeView.createView()
         @treeView = treeView.treeView
         @treeView.on 'click.autoresize', '.directory', (=> @resizeTreeView())
         @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
