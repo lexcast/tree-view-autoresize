@@ -1,6 +1,7 @@
 {requirePackages} = require 'atom-utils'
 {CompositeDisposable} = require 'atom'
 $ = require 'jquery'
+scrollbarWidth = require('scrollbar-width')()
 
 module.exports = TreeViewAutoresize =
   config:
@@ -18,11 +19,21 @@ module.exports = TreeViewAutoresize =
       type: 'integer'
       default: 0
       description: 'Add padding to the right side of the tree-view.'
+    animationMilliseconds:
+      type: 'integer'
+      default: 200
+      description: 'Number of milliseconds to elapse during animations. Smaller means faster.'
+    delayMilliseconds:
+      type: 'integer'
+      default: 200
+      description: 'Number of milliseconds to wait before animations. Smaller means faster.'
 
   subscriptions: null
   max: 0
   min: 0
   pad: 0
+  animationMs: 200
+  delayMs: 200
 
   activate: (state) ->
     @subscriptions = new CompositeDisposable
@@ -37,6 +48,14 @@ module.exports = TreeViewAutoresize =
 
     @subscriptions.add atom.config.observe 'tree-view-autoresize.padding', (pad) =>
         @pad = pad
+
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.animationMilliseconds',
+      (animationMs) =>
+        @animationMs = animationMs
+
+    @subscriptions.add atom.config.observe 'tree-view-autoresize.delayMilliseconds',
+      (delayMs) =>
+        @delayMs = delayMs
 
     if atom.packages.isPackageLoaded 'nuclide-file-tree'
       $('body').on 'click.autoresize', '.nuclide-file-tree .directory', (e) =>
@@ -74,30 +93,32 @@ module.exports = TreeViewAutoresize =
 
   resizeTreeView: ->
     setTimeout =>
-      currWidth = @treeView.list.outerWidth()
-      if currWidth > @treeView.width()
-        @treeView.animate {width: @getWidth(currWidth + @pad)}, 200
+      origListWidth = @treeView.list.outerWidth()
+      origTreeWidth = @treeView.width()
+      if origListWidth > origTreeWidth
+        @treeView.animate {width: @getWidth(origListWidth + scrollbarWidth + @pad)}, @animationMs
       else
         @treeView.width 1
         @treeView.width @treeView.list.outerWidth()
-        newWidth = @treeView.list.outerWidth() + @pad
-        @treeView.width currWidth
-        @treeView.animate {width: @getWidth(newWidth)}, 200
-    , 200
+        newTreeWidth = @getWidth(@treeView.list.outerWidth() + scrollbarWidth + @pad)
+        @treeView.width origTreeWidth
+        if origTreeWidth isnt newTreeWidth
+          @treeView.animate {width: newTreeWidth}, @animationMs
+    , @delayMs
 
   resizeNuclideFileTree: ->
     setTimeout =>
       fileTree = $('.tree-view-resizer')
       currWidth = fileTree.find('.nuclide-file-tree').outerWidth()
       if currWidth > fileTree.width()
-        fileTree.animate {width: @getWidth(currWidth + 10)}, 200
+        fileTree.animate {width: @getWidth(currWidth + 10)}, @animationMs
       else
         fileTree.width 1
         fileTree.width fileTree.find('.nuclide-file-tree').outerWidth()
         newWidth = fileTree.find('.nuclide-file-tree').outerWidth()
         fileTree.width currWidth
-        fileTree.animate {width: @getWidth(newWidth + 10)}, 200
-    , 200
+        fileTree.animate {width: @getWidth(newWidth + 10)}, @animationMs
+    , @delayMs
 
   getWidth: (w) ->
     if @max is 0 or w < @max
