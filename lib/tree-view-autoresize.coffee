@@ -51,6 +51,8 @@ module.exports = TreeViewAutoresize =
         @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
         @subscriptions.add atom.commands.add 'atom-workspace',
           'tree-view:reveal-active-file': => @resizeTreeView()
+          'tree-view:toggle': => @resizeTreeView()
+          'tree-view:show': => @resizeTreeView()
         @subscriptions.add atom.commands.add '.tree-view',
           'tree-view:open-selected-entry': => @resizeTreeView()
           'tree-view:expand-item': => @resizeTreeView()
