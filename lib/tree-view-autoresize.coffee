@@ -67,8 +67,9 @@ module.exports = TreeViewAutoresize =
       requirePackages('tree-view').then ([treeView]) =>
         unless treeView.treeView?
           treeView.createView()
-        @treeView = treeView.treeView
-        @treeView.on 'click.autoresize', '.directory', (=> @resizeTreeView())
+        @treePanel = $(treeView.treeView.element)
+        @treeList = $(treeView.treeView.list)
+        @treePanel.on 'click.autoresize', '.directory', (=> @resizeTreeView())
         @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
         @subscriptions.add atom.commands.add 'atom-workspace',
           'tree-view:reveal-active-file': => @resizeTreeView()
@@ -90,24 +91,22 @@ module.exports = TreeViewAutoresize =
 
   deactivate: ->
     @subscriptions.dispose()
-    @treeView?.unbind 'click.autoresize'
+    @treePanel?.unbind 'click.autoresize'
     $('body').unbind 'click.autoresize'
-
-  serialize: ->
 
   resizeTreeView: ->
     setTimeout =>
-      origListWidth = @treeView.list.outerWidth()
-      origTreeWidth = @treeView.width()
+      origListWidth = @treeList.outerWidth()
+      origTreeWidth = @treePanel.width()
       if origListWidth > origTreeWidth
-        @treeView.animate {width: @getWidth(origListWidth + scrollbarWidth + @pad)}, @animationMs
+        @treePanel.animate {width: @getWidth(origListWidth + scrollbarWidth + @pad)}, @animationMs
       else
-        @treeView.width 1
-        @treeView.width @treeView.list.outerWidth()
-        newTreeWidth = @getWidth(@treeView.list.outerWidth() + scrollbarWidth + @pad)
-        @treeView.width origTreeWidth
+        @treePanel.width 1
+        @treePanel.width @treeList.outerWidth()
+        newTreeWidth = @getWidth(@treeList.outerWidth() + scrollbarWidth + @pad)
+        @treePanel.width origTreeWidth
         if origTreeWidth isnt newTreeWidth
-          @treeView.animate {width: newTreeWidth}, @animationMs
+          @treePanel.animate {width: newTreeWidth}, @animationMs
     , @delayMs
 
   resizeNuclideFileTree: ->
