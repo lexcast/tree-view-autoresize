@@ -1,6 +1,3 @@
-{requirePackages} = require 'atom-utils'
-{CompositeDisposable} = require 'atom'
-
 module.exports = TreeViewAutoresize =
   config:
     delayMilliseconds:
@@ -11,19 +8,23 @@ module.exports = TreeViewAutoresize =
   subscriptions: null
   delayMs: 100
 
-  activate: (state) ->
-    @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.delayMilliseconds',
-      (delayMs) =>
-        @delayMs = delayMs
+  activate: () ->
+    requestIdleCallback =>
+      {requirePackages} = require 'atom-utils'
+      {CompositeDisposable} = require 'atom'
 
-    requirePackages('tree-view').then ([treeView]) =>
-      unless treeView.treeView?
-        treeView.createView()
-      @treePanel = treeView.treeView.element
+      @subscriptions = new CompositeDisposable
+      @subscriptions.add atom.config.observe 'tree-view-autoresize.delayMilliseconds',
+        (delayMs) =>
+          @delayMs = delayMs
 
-      @initTreeViewEvents()
-      @resizeTreeView()
+      requirePackages('tree-view').then ([treeView]) =>
+        unless treeView.treeView?
+          treeView.createView()
+        @treePanel = treeView.treeView.element
+
+        @initTreeViewEvents()
+        @resizeTreeView()
 
   deactivate: ->
     @treePanel.removeEventListener 'click', @bindClick
