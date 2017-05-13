@@ -22,6 +22,7 @@ module.exports = TreeViewAutoresize =
         unless treeView.treeView?
           treeView.createView()
         @treePanel = treeView.treeView.element
+        @treePanel.style.width = null
 
         @initTreeViewEvents()
         @resizeTreeView()
