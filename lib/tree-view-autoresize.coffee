@@ -1,133 +1,77 @@
-{requirePackages} = require 'atom-utils'
-{CompositeDisposable} = require 'atom'
-$ = require 'jquery'
-scrollbarWidth = require('scrollbar-width')()
-
 module.exports = TreeViewAutoresize =
   config:
-    minimumWidth:
-      type: 'integer'
-      default: 0
-      description:
-        'Minimum tree-view width. Put 0 if you don\'t want a min limit.'
-    maximumWidth:
-      type: 'integer'
-      default: 0
-      description:
-        'Maximum tree-view width. Put 0 if you don\'t want a max limit.'
-    padding:
-      type: 'integer'
-      default: 0
-      description: 'Add padding to the right side of the tree-view.'
-    animationMilliseconds:
-      type: 'integer'
-      default: 200
-      description: 'Number of milliseconds to elapse during animations. Smaller means faster.'
     delayMilliseconds:
       type: 'integer'
-      default: 200
+      default: 100
       description: 'Number of milliseconds to wait before animations. Smaller means faster.'
 
   subscriptions: null
-  max: 0
-  min: 0
-  pad: 0
-  animationMs: 200
-  delayMs: 200
+  delayMs: 100
 
-  activate: (state) ->
-    @subscriptions = new CompositeDisposable
+  activate: () ->
+    requestIdleCallback =>
+      {requirePackages} = require 'atom-utils'
+      {CompositeDisposable} = require 'atom'
 
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.maximumWidth',
-      (max) =>
-        @max = max
+      @subscriptions = new CompositeDisposable
+      @subscriptions.add atom.config.observe 'tree-view-autoresize.delayMilliseconds',
+        (delayMs) =>
+          @delayMs = delayMs
 
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.minimumWidth',
-      (min) =>
-        @min = min
-
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.padding', (pad) =>
-        @pad = pad
-
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.animationMilliseconds',
-      (animationMs) =>
-        @animationMs = animationMs
-
-    @subscriptions.add atom.config.observe 'tree-view-autoresize.delayMilliseconds',
-      (delayMs) =>
-        @delayMs = delayMs
-
-    if atom.packages.isPackageLoaded 'nuclide-file-tree'
-      $('body').on 'click.autoresize', '.nuclide-file-tree .directory', (e) =>
-        @resizeNuclideFileTree()
-      @subscriptions.add atom.project.onDidChangePaths (=> @resizeNuclideFileTree())
-      @resizeNuclideFileTree()
-
-    else
       requirePackages('tree-view').then ([treeView]) =>
         unless treeView.treeView?
           treeView.createView()
-        @treePanel = $(treeView.treeView.element)
-        @treeList = $(treeView.treeView.list)
-        @treePanel.on 'click.autoresize', '.directory', (=> @resizeTreeView())
-        @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
-        @subscriptions.add atom.commands.add 'atom-workspace',
-          'tree-view:reveal-active-file': => @resizeTreeView()
-          'tree-view:toggle': => @resizeTreeView()
-          'tree-view:show': => @resizeTreeView()
-        @subscriptions.add atom.commands.add '.tree-view',
-          'tree-view:open-selected-entry': => @resizeTreeView()
-          'tree-view:expand-item': => @resizeTreeView()
-          'tree-view:recursive-expand-directory': => @resizeTreeView()
-          'tree-view:collapse-directory': => @resizeTreeView()
-          'tree-view:recursive-collapse-directory': => @resizeTreeView()
-          'tree-view:move': => @resizeTreeView()
-          'tree-view:cut': => @resizeTreeView()
-          'tree-view:paste': => @resizeTreeView()
-          'tree-view:toggle-vcs-ignored-files': => @resizeTreeView()
-          'tree-view:toggle-ignored-names': => @resizeTreeView()
-          'tree-view:remove-project-folder': => @resizeTreeView()
+        @treePanel = treeView.treeView.element
+        @treePanel.style.width = null
+
+        @initTreeViewEvents()
         @resizeTreeView()
 
   deactivate: ->
+    @treePanel.removeEventListener 'click', @bindClick
     @subscriptions.dispose()
-    @treePanel?.unbind 'click.autoresize'
-    $('body').unbind 'click.autoresize'
 
   resizeTreeView: ->
     setTimeout =>
-      origListWidth = @treeList.outerWidth()
-      origTreeWidth = @treePanel.width()
-      if origListWidth > origTreeWidth
-        @treePanel.animate {width: @getWidth(origListWidth + scrollbarWidth + @pad)}, @animationMs
+      if @isInLeft()
+        atom.workspace.getLeftDock().handleResizeToFit()
       else
-        @treePanel.width 1
-        @treePanel.width @treeList.outerWidth()
-        newTreeWidth = @getWidth(@treeList.outerWidth() + scrollbarWidth + @pad)
-        @treePanel.width origTreeWidth
-        if origTreeWidth isnt newTreeWidth
-          @treePanel.animate {width: newTreeWidth}, @animationMs
+        atom.workspace.getRightDock().handleResizeToFit()
     , @delayMs
 
-  resizeNuclideFileTree: ->
-    setTimeout =>
-      fileTree = $('.tree-view-resizer')
-      currWidth = fileTree.find('.nuclide-file-tree').outerWidth()
-      if currWidth > fileTree.width()
-        fileTree.animate {width: @getWidth(currWidth + 10)}, @animationMs
-      else
-        fileTree.width 1
-        fileTree.width fileTree.find('.nuclide-file-tree').outerWidth()
-        newWidth = fileTree.find('.nuclide-file-tree').outerWidth()
-        fileTree.width currWidth
-        fileTree.animate {width: @getWidth(newWidth + 10)}, @animationMs
-    , @delayMs
+  onClickDirectory: (e) ->
+    node = e.target
+    while node != null and node != @treePanel
+      if node.classList.contains('directory')
+        @resizeTreeView()
+        return
+      node = node.parentNode
 
-  getWidth: (w) ->
-    if @max is 0 or w < @max
-      if @min is 0 or w > @min
-        w
-      else
-        @min
-    else
-      @max
+  isInLeft: ->
+    node = @treePanel.parentNode
+    while node != null
+      if node.classList.contains('left')
+        return true
+      node = node.parentNode
+    false
+
+  initTreeViewEvents: ->
+    @bindClick = @onClickDirectory.bind(this)
+    @treePanel.addEventListener 'click', @bindClick
+    @subscriptions.add atom.project.onDidChangePaths (=> @resizeTreeView())
+    @subscriptions.add atom.commands.add 'atom-workspace',
+      'tree-view:reveal-active-file': => @resizeTreeView()
+      'tree-view:toggle': => @resizeTreeView()
+      'tree-view:show': => @resizeTreeView()
+    @subscriptions.add atom.commands.add '.tree-view',
+      'tree-view:open-selected-entry': => @resizeTreeView()
+      'tree-view:expand-item': => @resizeTreeView()
+      'tree-view:recursive-expand-directory': => @resizeTreeView()
+      'tree-view:collapse-directory': => @resizeTreeView()
+      'tree-view:recursive-collapse-directory': => @resizeTreeView()
+      'tree-view:move': => @resizeTreeView()
+      'tree-view:cut': => @resizeTreeView()
+      'tree-view:paste': => @resizeTreeView()
+      'tree-view:toggle-vcs-ignored-files': => @resizeTreeView()
+      'tree-view:toggle-ignored-names': => @resizeTreeView()
+      'tree-view:remove-project-folder': => @resizeTreeView()
