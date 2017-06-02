@@ -50,7 +50,7 @@ module.exports = TreeViewAutoresize =
   isInLeft: ->
     node = @treePanel.parentNode
     while node != null
-      if node.classList.contains('left')
+      if node.classList?.contains('left')
         return true
       node = node.parentNode
     false
