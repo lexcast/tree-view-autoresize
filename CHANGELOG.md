@@ -1,6 +1,6 @@
 # Change Log
 
-## [v2.2.0](https://github.com/lexcast/tree-view-autoresize/tree/v2.2.0) (2017-08-15) Settings are back
+## [v2.2.0](https://github.com/lexcast/tree-view-autoresize/tree/v2.2.0) (2017-08-15) Suppress horizontal scrollbar
 [Full Changelog](https://github.com/lexcast/tree-view-autoresize/compare/v2.1.0...v2.2.0)
 
 - Suppress horizontal scrollbar
