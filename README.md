@@ -9,8 +9,9 @@ Autoresize the tree view when open/close folders.
 ~~It also supports [Nuclide](http://nuclide.io) file tree~~
 
 ## Install
-With apm:
+From Atom go to Settings ➔ Install or with the command `Settings View:Install Packages and Themes` and then search for `tree-view-autoresize`
+
+Or with apm:
 ```bash
 apm install tree-view-autoresize
 ```
-Or Settings ➔ Packages ➔ Search for `tree-view-autoresize`
