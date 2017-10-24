@@ -145,6 +145,10 @@ module.exports = TreeViewAutoresize =
         atom-dock.right .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
           max-width: #{@conf['maximumWidth']}px;
         }
+        atom-dock.left .tree-view,
+        atom-dock.right .tree-view {
+            overflow-x: scroll !important;
+        }
       "
 
     css += "
