@@ -34,11 +34,6 @@ module.exports = TreeViewAutoresize =
       {CompositeDisposable} = require 'atom'
 
       @subscriptions = new CompositeDisposable
-      @observe 'minimumWidth'
-      @observe 'maximumWidth'
-      @observe 'padding'
-      @observe 'animationMilliseconds'
-      @observe 'delayMilliseconds', false
 
       requirePackages('tree-view').then ([treeView]) =>
         unless treeView.treeView?
@@ -48,6 +43,12 @@ module.exports = TreeViewAutoresize =
 
         @initTreeViewEvents()
         @resizeTreeView()
+
+        @observe 'minimumWidth'
+        @observe 'maximumWidth'
+        @observe 'padding'
+        @observe 'animationMilliseconds'
+        @observe 'delayMilliseconds', false
 
   deactivate: ->
     @treePanel.removeEventListener 'click', @bindClick
@@ -124,32 +125,42 @@ module.exports = TreeViewAutoresize =
     "
 
     if @conf['minimumWidth'] > 0
-      css += "
-        atom-dock.left .atom-dock-open .atom-dock-mask,
-        atom-dock.right .atom-dock-open .atom-dock-mask {
-          min-width: #{@conf['minimumWidth']}px;
-        }
-        atom-dock.left  .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper,
-        atom-dock.right .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
-          min-width: #{@conf['minimumWidth']}px;
-        }
-      "
+      if @isInLeft()
+        css += "
+          atom-dock.left .atom-dock-open .atom-dock-mask,
+          atom-dock.left  .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
+            min-width: #{@conf['minimumWidth']}px;
+          }
+        "
+      else
+        css += "
+          atom-dock.right .atom-dock-open .atom-dock-mask,
+          atom-dock.right .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
+            min-width: #{@conf['minimumWidth']}px;
+          }
+        "
 
     if @conf['maximumWidth'] > 0
-      css += "
-        atom-dock.left .atom-dock-open .atom-dock-mask,
-        atom-dock.right .atom-dock-open .atom-dock-mask {
-          max-width: #{@conf['maximumWidth']}px;
-        }
-        atom-dock.left  .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper,
-        atom-dock.right .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
-          max-width: #{@conf['maximumWidth']}px;
-        }
-        atom-dock.left .tree-view,
-        atom-dock.right .tree-view {
+      if @isInLeft()
+        css += "
+          atom-dock.left .atom-dock-open .atom-dock-mask,
+          atom-dock.left  .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
+            max-width: #{@conf['maximumWidth']}px;
+          }
+          atom-dock.left .tree-view {
             overflow-x: scroll !important;
-        }
-      "
+          }
+        "
+      else
+        css += "
+          atom-dock.right .atom-dock-open .atom-dock-mask,
+          atom-dock.right .atom-dock-open .atom-dock-mask .atom-dock-content-wrapper {
+            max-width: #{@conf['maximumWidth']}px;
+          }
+          atom-dock.right .tree-view {
+            overflow-x: scroll !important;
+          }
+        "
 
     css += "
       atom-dock.left  .tree-view .full-menu,
